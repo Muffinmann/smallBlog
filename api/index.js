@@ -1,5 +1,15 @@
 const app = require('express')();
 const { v4 } = require('uuid');
+const fs = require('fs');
+
+app.get('/', (req, res) => {
+  fs.readFile(getFilePath('home.html'), (err, data) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
+    res.end(data);
+  })
+});
 
 app.get('/api', (req, res) => {
   const path = `/api/item/${v4()}`;
