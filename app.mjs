@@ -30,6 +30,13 @@ const server = http.createServer((req, res) => {
       res.end(data);
     })
   }
+  else if (req.url === '/styles.css' && req.method === 'GET') {
+    fs.readFile(getFilePath('styles.css'), (err, data) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/css');
+      res.end(data);
+    })
+  }
 });
 
 server.listen(port, hostname, () => {
