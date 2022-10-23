@@ -1,6 +1,6 @@
 import http from 'http';
 import fs from 'fs';
-import path from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +13,7 @@ const getFilePath = (name) => path.join('/', __dirname, name);
 
 const server = http.createServer((req, res) => {
   console.log('req:', req.method, ' for', req.url);
+  console.log(req.headers)
   if (req.url === '/' && req.method === 'GET') {
     fs.readFile(getFilePath('index.html'), (err, data) => {
       if (err) {
