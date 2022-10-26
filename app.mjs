@@ -2,6 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import getBlogs from './data/index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,7 @@ const getFilePath = (name) => path.join('/', __dirname, name);
 
 const server = http.createServer((req, res) => {
   console.log('req:', req.method, ' for', req.url);
+  console.log('from: ', req.socket.remoteAddress)
   console.log(req.headers)
   if (req.url === '/' && req.method === 'GET') {
     fs.readFile(getFilePath('index.html'), (err, data) => {
@@ -24,17 +26,25 @@ const server = http.createServer((req, res) => {
       res.end(data);
     })
   }
-  else if (req.url === '/blogs' && req.method === 'GET') {
-    fs.readFile(getFilePath('blogs.html'), (err, data) => {
+  else if (req.url === '/api/data/blogs' && req.method === 'GET') {
+    getBlogs((data) => {
       res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/html');
-      res.end(data);
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(data));
+
     })
   }
   else if (req.url === '/styles.css' && req.method === 'GET') {
     fs.readFile(getFilePath('styles.css'), (err, data) => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'text/css');
+      res.end(data);
+    })
+  }
+  else if (req.url === '/index.js' && req.method === 'GET') {
+    fs.readFile(getFilePath('index.js'), (err, data) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/javascript');
       res.end(data);
     })
   }
