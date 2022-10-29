@@ -1,11 +1,91 @@
-import sqlite3 from 'sqlite3'
+import sqlite3 from 'sqlite3';
 
-const db = new sqlite3.Database(':memory:', (err) => {
+const createBlog = (db, { blogTitle, blogContent}) => {
+  db.run(String.raw `INSERT INTO blogs (
+      blog_title,
+      blog_content,
+      blog_created_at,
+      blog_modified_at,
+      blog_viewed_times
+    ) VALUES (
+      "${blogTitle}",
+      "${blogContent}",
+      datetime('now'),
+      datetime('now'),
+      0
+    )`, (err) => console.error('create blog: ' + err)
+  );
+};
+
+const createBlogsTable = (db, next) => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS blogs (
+      blog_id INTEGER PRIMARY KEY NOT NULL,
+      blog_title TEXT NOT NULL,
+      blog_content TEXT NOT NULL,
+      blog_created_at TEXT NOT NULL,
+      blog_modified_at TEXT NOT NULL,
+      blog_viewed_times INTEGER NOT NULL DEFAULT 0
+    )
+  `, () => next && next());
+};
+
+const createCategoriesTable = (db, next) => {
+  db.run(`
+  CREATE TABLE IF NOT EXISTS blog_categories (
+    blog_id INTEGER NOT NULL,
+    category_id INTEGER NOT NULL,
+    PRIMARY KEY (blog_id, category_id),
+    FOREIGN KEY (blog_id)
+      REFERENCES blogs (blog_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (category_id)
+      REFERENCES categories (category_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+  );
+  `, () => next && next());
+};
+
+const createBlogCategoriesTable = (db, next) => {
+  db.run(`
+  CREATE TABLE IF NOT EXISTS categories (
+    category_id INT PRIMARY KEY NOT NULL,
+    category_name TEXT NOT NULL
+  );
+  `, () => next && next());
+};
+
+const createTables = (db) => {
+  db.parallelize(() => {
+    createBlogsTable(db, () => createBlog(db, {
+      blogId: 1,
+      blogTitle: 'first blog',
+      blogContent: String.raw `I'am a test blog with very short content`,
+    }));
+    createCategoriesTable(db);
+    createBlogCategoriesTable(db);
+  });
+};
+
+const createDb = () => {
+  const newDb = new sqlite3.Database('data/smallBlog.db', (err) => {
+    if (err) {
+      console.err('connecting db failed' + err);
+    }
+    createTables(newDb);
+  });
+};
+
+const db = new sqlite3.Database('./data/smallBlog.db', sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
+    createDb();
     return console.error(err.message);
   }
-  console.log('Connected to the in-memory Sqlite database.')
-})
+  console.log('Connected to the Sqlite database.');
+});
+
 
 // db.close((err) => {
 //   if (err) {
@@ -15,66 +95,33 @@ const db = new sqlite3.Database(':memory:', (err) => {
 // })
 const getBlogs = (cb) => {
   db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS blogs (
-        blog_id INTERGER PRIMARY KEY not null,
-        blog_title TEXT not null,
-        blog_created_at TEXT not null,
-        blog_content TEXT not null
-      )
-    `, (err) => {
-      if (err) console.log('create blogs =>', err)
-    })
-    .run(`
-        insert into blogs (blog_id, blog_title, blog_created_at, blog_content)
-        values (1, 'title 1', '2022-10-23', 'test paragraph'),
-               (2, 'title 2', '2022-10-24', 'test paragraph second')
-    `, (err) => {
-      if (err) console.log('insert blogs =>', err)
-    })
-    .run(`
-      CREATE TABLE IF NOT EXISTS categories (
-        category_id INT PROMARY KEY not null,
-        category_name text not null
-      )
-    `, (err) => {
-      if (err) console.log('create categories =>', err)
-    })
-    .run(`
-    insert into categories (category_id, category_name)
-        values (1, 'tag 1'),
-               (2, 'tag 2')
-    `)
-    .run(`
-      CREATE TABLE IF NOT EXISTS blog_categories (
-        blog_id interger,
-        category_id interger,
-        PRIMARY KEY (blog_id, category_id)
-        FOREIGN KEY (blog_id)
-          REFERENCES blogs (blog_id)
-            ON UPDATE CASCADE
-            ON DELETE CASCADE
-        FOREIGN KEY (category_id)
-          REFERENCES categories (category_id)
-            ON UPDATE CASCADE
-            ON DELETE CASCADE
-      )
-    `)
-    .run(`
-        INSERT INTO blog_categories (blog_id, category_id)
-          values (1, 1), (2, 2)
-    `)
-    .all(`SELECT * FROM blog_categories
-    INNER JOIN blogs ON blog_categories.blog_id=blogs.blog_id
-    INNER JOIN categories ON blog_categories.category_id=categories.category_id
-  `, (err, rows) => {
+    db.all(`SELECT * FROM blogs`, (err, rows) => {
       if (err) {
-        return console.error('select error: ', err.message)
+        return console.error('select error: ', err.message);
       }
-      cb(rows)
-      db.close()
-    })
-  })
-}
+      // console.log('rows = ', rows);
+      cb(rows);
+      // db.close()
+    });
+  });
+};
 
+// const dropTables = (db) => {
+//   db.run(`
+//     DROP TABLE IF EXISTS blogs
+//   `, (e, row) => console.log('drop tables : ', e, row));
+// };
+// createBlog(db, {
+//   blogTitle: 'a test blog contains HTML tags',
+//   blogContent: String.raw `this blog is a test blog which contains HTML tag, for example,
+//     the following text is wrapped by a &lt;p&gt; tag, which should start a new line:
+//     <p>I'am the text living in a pair of p tag </p>
+//     and the content after it starts a new line as well
+//   `
+// });
+
+// getBlogs((d) => console.log('blogs = ', d));
+// dropTables(db);
+// db.close();
 export default getBlogs;
 
