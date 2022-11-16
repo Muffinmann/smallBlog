@@ -7,20 +7,21 @@ fetch(dataRequest)
   .then((data) => data.json(), (err) => console.error('fetch error' + err))
   .then((dJson) => {
     console.log('fetched data:', dJson);
-    const root = document.getElementById('root');
+    const main = document.querySelector('main');
+    const loader = document.querySelector('.loader');
+    const bList = document.createElement('ul');
+
     dJson.forEach((blog) => {
-      const blogView = renderBlog({blogTitle: blog.blog_title, blogContent: blog.blog_content});
-      root.appendChild(blogView);
+      const listItem = document.createElement('li');
+      const link = document.createElement('a');
+      link.setAttribute('href', `blogs/${blog.blog_id}`);
+      const txtNode = document.createTextNode(blog.blog_title);
+
+      link.appendChild(txtNode);
+      listItem.appendChild(link);
+      bList.appendChild(listItem);
     });
 
-    // const tag = document.getElementById('blog-tags');
-    // const a = document.createElement('a');
-    // a.textContent = 'remote tag';
-    // a.setAttribute('class', 'tag');
-    // a.setAttribute('href', '/');
-    // tag.appendChild(a);
-
-    // const txt = document.createTextNode('txt tag');
-  
-    // tag.append(txt);
+    main.appendChild(bList);
+    main.removeChild(loader);
   });

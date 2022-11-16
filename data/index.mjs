@@ -93,16 +93,25 @@ const db = new sqlite3.Database('./data/smallBlog.db', sqlite3.OPEN_READWRITE, (
 //   }
 //   console.log('Closed db successfully.')
 // })
-const getBlogs = (cb) => {
-  db.serialize(() => {
-    db.all(`SELECT * FROM blogs`, (err, rows) => {
-      if (err) {
-        return console.error('select error: ', err.message);
-      }
-      // console.log('rows = ', rows);
-      cb(rows);
-      // db.close()
-    });
+export const getBlogs = (cb) => {
+  db.all(`SELECT blog_id, blog_title FROM blogs`, (err, rows) => {
+    if (err) {
+      return console.error('select error: ', err.message);
+    }
+    // console.log('rows = ', rows);
+    cb(rows);
+    // db.close()
+  });
+  // db.serialize(() => {
+  // });
+};
+
+export const getBlog = (id, cb) => {
+  db.get(`SELECT * FROM blogs WHERE blog_id = ?`, id, (err, row) => {
+    if (err) {
+      return console.error('get blog error' + err.message);
+    }
+    cb(row);
   });
 };
 
