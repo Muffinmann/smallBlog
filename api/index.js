@@ -1,9 +1,9 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { fileURLToPath } = require('url');
-const { getBlogs, getBlog } = require('../data/index.mjs');
-const Router = require('../scripts/router/index.mjs');
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { getBlogs, getBlog } from '../../data/index.mjs';
+import Router from '../../scripts/router/index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +26,7 @@ router.use('/', (req, res) => {
   });
 });
 
-router.use('/data/blogs', (req, res) => {
+router.use('/api/data/blogs', (req, res) => {
   getBlogs((data) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -90,32 +90,3 @@ const server = http.createServer((req, res) => {
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
-
-// const app = require('express')();
-// const { v4 } = require('uuid');
-// const fs = require('fs');
-
-// const getFilePath = (name) => path.join('/', __dirname, name);
-
-// app.get('/', (req, res) => {
-//   fs.readFile(path.join('/', __dirname, '..', 'index.html'), (err, data) => {
-//     res.statusCode = 200;
-//     res.setHeader('Content-Type', 'text/html');
-//     res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-//     res.end(data);
-//   })
-// });
-
-// app.get('/api', (req, res) => {
-//   const path = `/api/item/${v4()}`;
-//   res.setHeader('Content-Type', 'text/html');
-//   res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-//   res.end(`Hello! Go to item: <a href="${path}">${path}</a>`);
-// });
-
-// app.get('/api/item/:slug', (req, res) => {
-//   const { slug } = req.params;
-//   res.end(`Item: ${slug}`);
-// });
-
-// module.exports = app;

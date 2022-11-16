@@ -1,6 +1,6 @@
 import { renderBlog } from './views/blog.mjs';
 
-const dataRequest = new Request('/data/blogs');
+const dataRequest = new Request('api/data/blogs');
 
 
 fetch(dataRequest)
