@@ -26,7 +26,7 @@ router.use('/', (req, res) => {
   });
 });
 
-router.use('/api/data/blogs', (req, res) => {
+router.use('/data/blogs', (req, res) => {
   getBlogs((data) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
